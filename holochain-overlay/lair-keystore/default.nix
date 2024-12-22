@@ -1,17 +1,21 @@
-{ pkgs, version, sha256, arch ? "x86_64-unknown-linux-gnu" }:
+{ pkgs, version, sha256, arch ? "x86_64-unknown-linux-gnu", abbrev ? "x86_64-linux", source ? "matthme" }:
 
 with pkgs;
 
 let
   name = "lair-keystore";
   warnMismatch = checkCompatibility { inherit version arch name; };
+  urlTemplates = {
+    matthme = "https://github.com/matthme/holochain-binaries/releases/download/lair-binaries-${version}/lair-keystore-v${version}-${arch}";
+    holochain = "https://github.com/holochain/holochain/releases/download/holochain-${version}/lair-keystore-${abbrev}";
+  };
 in
 stdenv.mkDerivation rec {
   pname = name;
   inherit version;
 
   src = fetchurl {
-    url = "https://github.com/matthme/holochain-binaries/releases/download/lair-binaries-${version}/lair-keystore-v${version}-${arch}";
+    url = urlTemplates.${source} or ( throw "Unsupported binaries source: ${source}");
     inherit sha256;
   };
 

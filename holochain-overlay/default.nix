@@ -43,18 +43,28 @@ self: super: {
   '';
 
   # Helper function to select the appropriate architecture and construct the config
-  selectArchConfig = { system ? super.system, version, linux_x64, darwin_x64 ? null, darwin_aarch64 ? null, windows_x64 ? null }:
+  selectArchConfig = {
+    system ? super.system,
+    version,
+    linux_x64,
+    linux_aarch64 ? null,
+    darwin_x64 ? null,
+    darwin_aarch64 ? null,
+    windows_x64 ? null,
+    source ? "matthme"
+  }:
     let
       archMap = {
-        "x86_64-linux" = { arch = "x86_64-unknown-linux-gnu"; sha256 = linux_x64; };
-        "x86_64-darwin" = { arch = "x86_64-apple-darwin"; sha256 = darwin_x64; };
-        "aarch64-darwin" = { arch = "aarch64-apple-darwin"; sha256 = darwin_aarch64; };
-        "x86_64-mingw32" = { arch = "x86_64-pc-windows-msvc"; sha256 = windows_x64; };
+        "x86_64-linux" = { arch = "x86_64-unknown-linux-gnu"; abbrev = "x86_64-linux"; sha256 = linux_x64; };
+        "aarch64-linux" = { arch = "aarch64-unknown-linux-gnu"; abbrev = "aarch64-linux"; sha256 = linux_aarch64; };
+        "x86_64-darwin" = { arch = "x86_64-apple-darwin"; abbrev = "x86_64-apple"; sha256 = darwin_x64; };
+        "aarch64-darwin" = { arch = "aarch64-apple-darwin"; abbrev = "aarch64-apple"; sha256 = darwin_aarch64; };
+        "x86_64-mingw32" = { arch = "x86_64-pc-windows-msvc"; abbrev = "x86_64-windows"; sha256 = windows_x64; };
       };
     in
       if builtins.hasAttr system archMap
-      then archMap.${system} // { inherit version; }
-      else throw "Unsupported system: ${system}";
+      then archMap.${system} // { inherit version source; }
+      else throw "Unsupported system: ${system} or binaries source: ${source}";
 
   holochain_0-1-8 = super.callPackage ./holochain/default.nix { version = "0.1.8"; sha256 = "HVJ6SItgOj2fkGAOsbzS5d/+4yau+xIyTxl/59Ela8s="; };
 
@@ -225,8 +235,18 @@ self: super: {
       windows_x64 = "v4Ntf4zCFs4fYM2rFf0h1rHTxapI/c+A7Qo+H2qPRlE=";
     }
   );
+  holochain_0-4-0 = super.callPackage ./holochain/default.nix (
+    self.selectArchConfig {
+      version = "0.4.0"; source = "holochain";
+      linux_x64 = "iETIEGJS6Gh1FdbLIjeIJ16EfYAO0xOJnP3oueJrGhw=";
+      linux_aarch64 = "Egzpefzy+fRzw70drz7tVMn6ALvYoiv3JtjqLl6BjH0=";
+      darwin_x64 = "p0hQ5spHwkvzCJ+DGsDvnxkCPLt8uuBaYIGyo9l0FgM=";
+      darwin_aarch64 = "P0Ni1R41GyEBWobJc9L1u229TOVYKhfh78BVGL1ylwE=";
+      windows_x64 = "t6zi1YaGUvBIFO/8nwKLdCORy51hwlnyHBz20JnwMAs=";
+    }
+  );
 
-  holochain_0-4-x = self.holochain_0-4-0-dev-27;
+  holochain_0-4-x = self.holochain_0-4-0;
   holochain_0-4 = self.createSymlink self.holochain_0-4-x "holochain-0.4";
 
   holochain_0-x = self.holochain_0-3-x;
@@ -275,11 +295,36 @@ self: super: {
       windows_x64 = "QqSm6vPNHLUr3GUSs5LodEZ7xtf1djuJowN2ep2Xmtk=";
     }
   );
+  # The holochain binaries source version now ships the appropriate version of lair-keystore
+  # See: https://github.com/holochain/holochain/releases/tag/holochain-0.4.0
+  # To add a new release, you'll need to download all the artifacts to get their SHA-256s:
+  # $ gh release list -R holochain/holochain
+  # TITLE                                     TYPE         TAG NAME                PUBLISHED
+  # holochain 0.5.0-dev.10 (20241218.004735)  Pre-release  holochain-0.5.0-dev.10  about 4 days ago
+  # holochain 0.4.0 (20241217.174806)         Latest       holochain-0.4.0         about 4 days ago
+  # ...
+  # $ gh release download holochain-0.4.0 -D holochain_0.4.0 -R holochain/holochain
+  # Downloading ...
+  # alias sha256='python3 -c "import sys, hashlib, base64; [print(base64.b64encode(hashlib.sha256(open(f, \"rb\").read()).digest()).decode(), f) for f in sys.argv[1:]]"'
+  # sha256 holochain_0.4.0/*
+  # 2axY1dOHMRUdpA5k2cuRC/aM/iU9zsgTX7I8a5j9gXQ= holochain_0.4.0/hc-aarch64-apple
+  # J5HJl1Vj6yfGfIcfI4FKS4YlT4NdLeldpE2l2Iv68bQ= holochain_0.4.0/hc-aarch64-linux
+  # ...
+  lair-keystore_0-5-3 = super.callPackage ./lair-keystore/default.nix (
+    self.selectArchConfig {
+      version = "0.4.0"; source = "holochain";
+      linux_x64 = "CFdyp9IDQC2/MkLC3PpikY1/ILe3ZSswGl9Q+XT2H24=";
+      linux_aarch64 = "r+31aIpk5JefPz/rLObRs7gIFu6cLg/ADbCSXnF+ksU=";
+      darwin_x64 = "jvQrrLtq0GL4N6ZT5UZB5Zb8G+/sT7m3WsO/sJoUQ7o=";
+      darwin_aarch64 = "FVHGgWTP8kkX6eVCGlg98MhupV+deInUOAR+wNNqrhQ=";
+      windows_x64 = "QniyUA/KD1EZueDui1rOlR4qsJZepHk3FZiS9TYKTLg=";
+    }
+  );
 
   lair-keystore_0-4-x = self.lair-keystore_0-4-5;
   lair-keystore_0-4 = self.createSymlink self.lair-keystore_0-4-x "lair-keystore-0.4";
 
-  lair-keystore_0-5-x = self.lair-keystore_0-5-2;
+  lair-keystore_0-5-x = self.lair-keystore_0-5-3;
   lair-keystore_0-5 = self.createSymlink self.lair-keystore_0-5-x "lair-keystore-0.5";
 
   lair-keystore_0-x = self.lair-keystore_0-5-x;
@@ -449,8 +494,18 @@ self: super: {
       windows_x64 = "poEE813SKeRjzo09hFW+BE9JkZzEAMRm2WHG3G7bBYw=";
     }
   );
+  hc_0-4-0 = super.callPackage ./hc/default.nix (
+    self.selectArchConfig {
+      version = "0.4.0"; source = "holochain";
+      linux_x64 = "P9z+T+HSXTeVY8ZZPHiPOIP0rm3vC276QVHzim8lRa4=";
+      linux_aarch64 = "J5HJl1Vj6yfGfIcfI4FKS4YlT4NdLeldpE2l2Iv68bQ=";
+      darwin_x64 = "m4Hn8cCS849xuubtmgO7Y5gV4rvX/BLHmh3oyMQi42M=";
+      darwin_aarch64 = "2axY1dOHMRUdpA5k2cuRC/aM/iU9zsgTX7I8a5j9gXQ=";
+      windows_x64 = "XIuJYK6/Tp8+T1AWgRLTi8tYBVAb9wIOhEf0beHwE88=";
+    }
+  );
 
-  hc_0-4-x = self.hc_0-4-0-dev-27;
+  hc_0-4-x = self.hc_0-4-0;
   hc_0-4 = self.createSymlink self.hc_0-4-x "hc-0.4";
 
   hc_0-x = self.hc_0-3-x;
