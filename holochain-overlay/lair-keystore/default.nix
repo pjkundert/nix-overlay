@@ -19,7 +19,7 @@ stdenv.mkDerivation rec {
     inherit sha256;
   };
 
-  nativeBuildInputs = with pkgs; [];
+  nativeBuildInputs = [ patchelf ];
 
   unpackPhase = "true"; # Skip the default unpackPhase
 
@@ -27,7 +27,15 @@ stdenv.mkDerivation rec {
 
   installPhase = warnMismatch ''
     mkdir -p $out/bin
-    cp $src $out/bin/lair-keystore-${version}
+
+    if [ "$(uname)" = "Linux" ]; then
+      patchelf --set-interpreter "$(cat $NIX_CC/nix-support/dynamic-linker)" \
+        --set-rpath "${lib.makeLibraryPath [ stdenv.cc.cc.lib ]}" \
+        --output $out/bin/lair-keystore-${version} $src
+    else
+      cp $src $out/bin/lair-keystore-${version}
+    fi
+
     chmod +x $out/bin/lair-keystore-${version}
     ln -s $out/bin/lair-keystore-${version} $out/bin/${pname}
   '';

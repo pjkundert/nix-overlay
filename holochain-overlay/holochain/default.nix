@@ -19,7 +19,7 @@ stdenv.mkDerivation rec {
     inherit sha256;
   };
 
-  nativeBuildInputs = [];
+  nativeBuildInputs = [ patchelf ];
 
   unpackPhase = "true"; # Skip the default unpackPhase
 
@@ -27,7 +27,15 @@ stdenv.mkDerivation rec {
 
   installPhase = warnMismatch ''
     mkdir -p $out/bin
-    cp $src $out/bin/holochain-${version}
+
+    if [ "$(uname)" = "Linux" ]; then
+      patchelf --set-interpreter "$(cat $NIX_CC/nix-support/dynamic-linker)" \
+        --set-rpath "${lib.makeLibraryPath [ stdenv.cc.cc.lib ]}" \
+        --output $out/bin/holochain-${version} $src
+    else
+      cp $src $out/bin/holochain-${version}
+    fi
+
     chmod +x $out/bin/holochain-${version}
     ln -s $out/bin/holochain-${version} $out/bin/${pname}
   '';
