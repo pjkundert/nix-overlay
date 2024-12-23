@@ -312,7 +312,7 @@ self: super: {
   # ...
   lair-keystore_0-5-3 = super.callPackage ./lair-keystore/default.nix (
     self.selectArchConfig {
-      version = "0.4.0"; source = "holochain";
+      version = "0.5.3"; source = "holochain";
       linux_x64 = "CFdyp9IDQC2/MkLC3PpikY1/ILe3ZSswGl9Q+XT2H24=";
       linux_aarch64 = "r+31aIpk5JefPz/rLObRs7gIFu6cLg/ADbCSXnF+ksU=";
       darwin_x64 = "jvQrrLtq0GL4N6ZT5UZB5Zb8G+/sT7m3WsO/sJoUQ7o=";
