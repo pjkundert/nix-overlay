@@ -70,6 +70,9 @@ mkShell {
     holochain_0-4-0-dev-26
     holochain_0-4-0-dev-27
 
+    # From "holochain"
+    holochain_0-4-0
+
 
     #
     # Lair Keystore
@@ -87,6 +90,9 @@ mkShell {
     lair-keystore_0-5-0
     lair-keystore_0-5-1
     lair-keystore_0-5-2
+
+    # From "holochain"
+    lair-keystore_0-5-3
 
 
     #
@@ -132,5 +138,8 @@ mkShell {
     hc_0-4-0-dev-25
     hc_0-4-0-dev-26
     hc_0-4-0-dev-27
+
+    # From "holochain"
+    hc_0-4-0
   ];
 }

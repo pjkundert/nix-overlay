@@ -1,21 +1,25 @@
-{ pkgs, version, sha256, arch ? "x86_64-unknown-linux-gnu" }:
+{ pkgs, version, sha256, arch ? "x86_64-unknown-linux-gnu", abbrev ? "x86_64-linux", source ? "holochain" }:
 
 with pkgs;
 
 let
   name = "lair-keystore";
   warnMismatch = checkCompatibility { inherit version arch name; };
+  urlTemplates = {
+    matthme = "https://github.com/matthme/holochain-binaries/releases/download/lair-binaries-${version}/lair-keystore-v${version}-${arch}";
+    holochain = "https://github.com/holochain/holochain/releases/download/holochain-${version}/lair-keystore-${abbrev}";
+  };
 in
 stdenv.mkDerivation rec {
   pname = name;
   inherit version;
 
   src = fetchurl {
-    url = "https://github.com/matthme/holochain-binaries/releases/download/lair-binaries-${version}/lair-keystore-v${version}-${arch}";
+    url = urlTemplates.${source} or ( throw "Unsupported binaries source: ${source}");
     inherit sha256;
   };
 
-  nativeBuildInputs = with pkgs; [];
+  nativeBuildInputs = [ patchelf ];
 
   unpackPhase = "true"; # Skip the default unpackPhase
 
@@ -23,7 +27,15 @@ stdenv.mkDerivation rec {
 
   installPhase = warnMismatch ''
     mkdir -p $out/bin
-    cp $src $out/bin/lair-keystore-${version}
+
+    if [ "$(uname)" = "Linux" ]; then
+      patchelf --set-interpreter "$(cat $NIX_CC/nix-support/dynamic-linker)" \
+        --set-rpath "${lib.makeLibraryPath [ stdenv.cc.cc.lib ]}" \
+        --output $out/bin/lair-keystore-${version} $src
+    else
+      cp $src $out/bin/lair-keystore-${version}
+    fi
+
     chmod +x $out/bin/lair-keystore-${version}
     ln -s $out/bin/lair-keystore-${version} $out/bin/${pname}
   '';
