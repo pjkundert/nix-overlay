@@ -314,7 +314,7 @@ self: super: {
   holochain_0-4-x = self.holochain_0-4-0;
   holochain_0-4 = self.createSymlink self.holochain_0-4-x "holochain-0.4";
 
-  holochain_0-x = self.holochain_0-3-x;
+  holochain_0-x = self.holochain_0-4-x;
   holochain_0 = self.createSymlink self.holochain_0-x "holochain-0";
 
   holochain_x = self.holochain_0-x;
@@ -596,7 +596,7 @@ self: super: {
   hc_0-4-x = self.hc_0-4-0;
   hc_0-4 = self.createSymlink self.hc_0-4-x "hc-0.4";
 
-  hc_0-x = self.hc_0-3-x;
+  hc_0-x = self.hc_0-4-x;
   hc_0 = self.createSymlink self.hc_0-x "hc-0";
 
   hc_x = self.hc_0-x;
