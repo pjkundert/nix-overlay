@@ -55,6 +55,32 @@ self: super: {
   #   - always supply the Holochain build for version,
   #   - name the target derivation, eg. lair-keystore_0.5.3 after running the execeutable lair-keystore --version
   #
+  # Here are step-by-step instructions:
+  # - The Holochain binaries source version now ships the appropriate version of lair-keystore
+  # See: https://github.com/holochain/holochain/releases/tag/holochain-0.4.0
+  #
+  # To add a new release, you'll need to download all the artifacts to get their SHA-256s:
+  # - Make certain it is a release will all artifacts built!
+  #   - Check: https://github.com/holochain/holochain/releases
+  #
+  # $ gh release list -R holochain/holochain
+  # TITLE                                     TYPE         TAG NAME                PUBLISHED
+  # holochain 0.5.0-dev.10 (20241218.004735)  Pre-release  holochain-0.5.0-dev.10  about 4 days ago
+  # holochain 0.4.0 (20241217.174806)         Latest       holochain-0.4.0         about 4 days ago
+  # ...
+  # $ gh release download holochain-0.4.0 -D holochain_0.4.0 -R holochain/holochain
+  # Downloading ...
+  # alias sha256='python3 -c "import sys, hashlib, base64; [print(base64.b64encode(hashlib.sha256(open(f, \"rb\").read()).digest()).decode(), f) for f in sys.argv[1:]]"'
+  # sha256 holochain_0.4.0/*
+  # 2axY1dOHMRUdpA5k2cuRC/aM/iU9zsgTX7I8a5j9gXQ= holochain_0.4.0/hc-aarch64-apple
+  # J5HJl1Vj6yfGfIcfI4FKS4YlT4NdLeldpE2l2Iv68bQ= holochain_0.4.0/hc-aarch64-linux
+  # ...
+  #
+  # Run the executables appropriate for your architecture with --version, to get *their* versions for naming!
+  # $ chmod a+x *holochain_0.4.0/*-aarch64-apple
+  # $ ./holochain_0.4.0/lair-keystore-aarch64-apple --version
+  # lair_keystore 0.5.3
+  #
   selectArchConfig = {
     system ? super.system,
     version,
@@ -260,6 +286,7 @@ self: super: {
       windows_x64 = "v4Ntf4zCFs4fYM2rFf0h1rHTxapI/c+A7Qo+H2qPRlE=";
     }
   );
+
   holochain_0-4-0 = super.callPackage ./holochain/default.nix (
     self.selectArchConfig {
       version = "0.4.0";  # Holochain release version, not holochain --version
@@ -270,6 +297,19 @@ self: super: {
       windows_x64 = "t6zi1YaGUvBIFO/8nwKLdCORy51hwlnyHBz20JnwMAs=";
     }
   );
+  holochain_0-5-0-dev-10 = super.callPackage ./holochain/default.nix (
+    self.selectArchConfig {
+      version = "0.5.0-dev.10";  # Holochain release version, not holochain --version
+      linux_x64 = "mZaYgLBA2ASu31Hz9VPVRwSm7yxzoV2FfIdf2DftbEY=";
+      linux_aarch64 = "Jzj6a7ocEfgsVbBsH0/jHKUam3M/uOgx8sRIAFSpXms=";
+      darwin_x64 = "U1qYlPkMteTaAKpixVjLutq1uDr9qTdA2YA7PbEZErE=";
+      darwin_aarch64 = "BmiCvWWEypkg80KxRtyz098Dmj3z4XsmUgeh8aLrgeg=";
+      windows_x64 = "cZOfzJ7EbLqYDdEohSn8sAFf5poMa7k2bXqoIoFMRaM=";
+    }
+  );
+
+  holochain_0-5-x = self.holochain_0-5-0-dev-10;
+  holochain_0-5 = self.createSymlink self.holochain_0-5-x "holochain-0.5";
 
   holochain_0-4-x = self.holochain_0-4-0;
   holochain_0-4 = self.createSymlink self.holochain_0-4-x "holochain-0.4";
@@ -324,21 +364,7 @@ self: super: {
       windows_x64 = "QqSm6vPNHLUr3GUSs5LodEZ7xtf1djuJowN2ep2Xmtk=";
     }
   );
-  # The holochain binaries source version now ships the appropriate version of lair-keystore
-  # See: https://github.com/holochain/holochain/releases/tag/holochain-0.4.0
-  # To add a new release, you'll need to download all the artifacts to get their SHA-256s:
-  # $ gh release list -R holochain/holochain
-  # TITLE                                     TYPE         TAG NAME                PUBLISHED
-  # holochain 0.5.0-dev.10 (20241218.004735)  Pre-release  holochain-0.5.0-dev.10  about 4 days ago
-  # holochain 0.4.0 (20241217.174806)         Latest       holochain-0.4.0         about 4 days ago
-  # ...
-  # $ gh release download holochain-0.4.0 -D holochain_0.4.0 -R holochain/holochain
-  # Downloading ...
-  # alias sha256='python3 -c "import sys, hashlib, base64; [print(base64.b64encode(hashlib.sha256(open(f, \"rb\").read()).digest()).decode(), f) for f in sys.argv[1:]]"'
-  # sha256 holochain_0.4.0/*
-  # 2axY1dOHMRUdpA5k2cuRC/aM/iU9zsgTX7I8a5j9gXQ= holochain_0.4.0/hc-aarch64-apple
-  # J5HJl1Vj6yfGfIcfI4FKS4YlT4NdLeldpE2l2Iv68bQ= holochain_0.4.0/hc-aarch64-linux
-  # ...
+
   lair-keystore_0-5-3 = super.callPackage ./lair-keystore/default.nix (
     self.selectArchConfig {
       version = "0.4.0";  # Holochain release version, not lair-keystore --version
@@ -350,11 +376,15 @@ self: super: {
     }
   );
 
-  lair-keystore_0-4-x = self.lair-keystore_0-4-5;
-  lair-keystore_0-4 = self.createSymlink self.lair-keystore_0-4-x "lair-keystore-0.4";
+  # Until such time as a Holochain release is built which requires a version of lair-keystore beyond
+  # 0.5.3, we do not need to provision a new derivation targetting a lair-keystore binary from new
+  # Holochain binary releases...
 
   lair-keystore_0-5-x = self.lair-keystore_0-5-3;
   lair-keystore_0-5 = self.createSymlink self.lair-keystore_0-5-x "lair-keystore-0.5";
+
+  lair-keystore_0-4-x = self.lair-keystore_0-4-5;
+  lair-keystore_0-4 = self.createSymlink self.lair-keystore_0-4-x "lair-keystore-0.4";
 
   lair-keystore_0-x = self.lair-keystore_0-5-x;
   lair-keystore_0 = self.createSymlink self.lair-keystore_0-x "lair-keystore-0";
@@ -538,6 +568,7 @@ self: super: {
       windows_x64 = "poEE813SKeRjzo09hFW+BE9JkZzEAMRm2WHG3G7bBYw=";
     }
   );
+
   hc_0-4-0 = super.callPackage ./hc/default.nix (
     self.selectArchConfig {
       version = "0.4.0";  # Holochain release version, not hc --version
@@ -548,6 +579,19 @@ self: super: {
       windows_x64 = "XIuJYK6/Tp8+T1AWgRLTi8tYBVAb9wIOhEf0beHwE88=";
     }
   );
+  hc_0-5-0-dev-10 = super.callPackage ./hc/default.nix (
+    self.selectArchConfig {
+      version = "0.5.0-dev.10";  # Holochain release version, not hc --version
+      linux_x64 = "jCTBXUjSUwxnI4xW0pfOdsZa2NrgHRjIA620sZ+Nexw=";
+      linux_aarch64 = "5t0+E361u+oUrNh1CvAYKNMUA1q70ZBts3D4xPWp2OE=";
+      darwin_x64 = "PBoSLv/84IGysJ8w2mpvzFZHqo50r2eaOO4gmaJrMvo=";
+      darwin_aarch64 = "Zw76mtxxVkbVEPDlnT4tFVce1M62yPY+Gq+8yJbh8x0=";
+      windows_x64 = "IWxs3BOpaev3wdftwj9Vs8w8cYwTeevQzFctt8hMyqY=";
+    }
+  );
+
+  hc_0-5-x = self.hc_0-5-0-dev-10;
+  hc_0-5 = self.createSymlink self.hc_0-5-x "hc-0.5";
 
   hc_0-4-x = self.hc_0-4-0;
   hc_0-4 = self.createSymlink self.hc_0-4-x "hc-0.4";
