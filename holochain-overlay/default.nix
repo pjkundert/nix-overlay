@@ -43,6 +43,18 @@ self: super: {
   '';
 
   # Helper function to select the appropriate architecture and construct the config
+  # - For source="matthme", the version specifies the specific hc, holochain or lair-keystore version
+  # - For source="holochain", the version specifies the Holochain release, eg. "0.4.0"
+  #   - Each hc, holochain or lair-keystore built for that Holochain release may have a *different*
+  #     version
+  #   - For example, for Holochain build "0.4.0", the hc and holochain are indeed version 0.4.0, but
+  #     the compatible lair-keystore executable built for this Holochain version is 0.5.3!
+  #   - There are no external indicators of this; you must obtain the executables, and run them with --version
+  #     to discover each of their version numbers!
+  # To summarize: for source="holochain"
+  #   - always supply the Holochain build for version,
+  #   - name the target derivation, eg. lair-keystore_0.5.3 after running the execeutable lair-keystore --version
+  #
   selectArchConfig = {
     system ? super.system,
     version,
@@ -250,7 +262,7 @@ self: super: {
   );
   holochain_0-4-0 = super.callPackage ./holochain/default.nix (
     self.selectArchConfig {
-      version = "0.4.0";
+      version = "0.4.0";  # Holochain release version, not holochain --version
       linux_x64 = "iETIEGJS6Gh1FdbLIjeIJ16EfYAO0xOJnP3oueJrGhw=";
       linux_aarch64 = "Egzpefzy+fRzw70drz7tVMn6ALvYoiv3JtjqLl6BjH0=";
       darwin_x64 = "p0hQ5spHwkvzCJ+DGsDvnxkCPLt8uuBaYIGyo9l0FgM=";
@@ -329,7 +341,7 @@ self: super: {
   # ...
   lair-keystore_0-5-3 = super.callPackage ./lair-keystore/default.nix (
     self.selectArchConfig {
-      version = "0.5.3"; source = "holochain";
+      version = "0.4.0";  # Holochain release version, not lair-keystore --version
       linux_x64 = "CFdyp9IDQC2/MkLC3PpikY1/ILe3ZSswGl9Q+XT2H24=";
       linux_aarch64 = "r+31aIpk5JefPz/rLObRs7gIFu6cLg/ADbCSXnF+ksU=";
       darwin_x64 = "jvQrrLtq0GL4N6ZT5UZB5Zb8G+/sT7m3WsO/sJoUQ7o=";
@@ -528,7 +540,7 @@ self: super: {
   );
   hc_0-4-0 = super.callPackage ./hc/default.nix (
     self.selectArchConfig {
-      version = "0.4.0";
+      version = "0.4.0";  # Holochain release version, not hc --version
       linux_x64 = "P9z+T+HSXTeVY8ZZPHiPOIP0rm3vC276QVHzim8lRa4=";
       linux_aarch64 = "J5HJl1Vj6yfGfIcfI4FKS4YlT4NdLeldpE2l2Iv68bQ=";
       darwin_x64 = "m4Hn8cCS849xuubtmgO7Y5gV4rvX/BLHmh3oyMQi42M=";
