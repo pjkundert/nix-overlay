@@ -1,4 +1,4 @@
-{ pkgs, version, sha256, arch ? "x86_64-unknown-linux-gnu", abbrev ? "x86_64-linux", source ? "holochain" }:
+{ pkgs, version, sha256, arch ? "x86_64-unknown-linux-gnu", abbrev ? "x86_64-linux", source ? "holochain", version_source ? version }:
 
 with pkgs;
 
@@ -7,7 +7,7 @@ let
   warnMismatch = checkCompatibility { inherit version arch name; };
   urlTemplates = {
     matthme = "https://github.com/matthme/holochain-binaries/releases/download/holochain-binaries-${version}/holochain-v${version}-${arch}";    
-    holochain = "https://github.com/holochain/holochain/releases/download/holochain-${version}/holochain-${abbrev}";
+    holochain = "https://github.com/holochain/holochain/releases/download/holochain-${version_source}/holochain-${abbrev}";
   };
 in
 stdenv.mkDerivation rec {
