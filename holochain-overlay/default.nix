@@ -89,7 +89,8 @@ self: super: {
     darwin_x64 ? null,
     darwin_aarch64 ? null,
     windows_x64 ? null,
-    source ? "holochain"
+    source ? "holochain",
+    version_source ? version
   }:
     let
       archMap = {
@@ -101,7 +102,7 @@ self: super: {
       };
     in
       if builtins.hasAttr system archMap
-      then archMap.${system} // { inherit version source; }
+      then archMap.${system} // { inherit version source version_source; }
       else throw "Unsupported system: ${system} or binaries source: ${source}";
 
   holochain_0-1-8 = super.callPackage ./holochain/default.nix { version = "0.1.8"; source = "matthme"; sha256 = "HVJ6SItgOj2fkGAOsbzS5d/+4yau+xIyTxl/59Ela8s="; };
@@ -367,7 +368,8 @@ self: super: {
 
   lair-keystore_0-5-3 = super.callPackage ./lair-keystore/default.nix (
     self.selectArchConfig {
-      version = "0.4.0";  # Holochain release version, not lair-keystore --version
+      version = "0.5.3";
+      version_source = "0.4.0";  # Holochain release version, not lair-keystore --version
       linux_x64 = "CFdyp9IDQC2/MkLC3PpikY1/ILe3ZSswGl9Q+XT2H24=";
       linux_aarch64 = "r+31aIpk5JefPz/rLObRs7gIFu6cLg/ADbCSXnF+ksU=";
       darwin_x64 = "jvQrrLtq0GL4N6ZT5UZB5Zb8G+/sT7m3WsO/sJoUQ7o=";
